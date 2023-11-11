@@ -103,8 +103,6 @@
 
 	}
 
-
-
 	const canvas = document.getElementById("canvas");
 	const ctx = canvas.getContext("2d");
 	
@@ -114,26 +112,26 @@
 		return [((z[0]**2) - (z[1]**2)) + c[0], (2*(z[0]*z[1])) + c[1]]
 	}
 	
-	function dist(a, b) {
-		x1 = a[0]
-		y1 = a[1]
-		x2 = b[0]
-		y2 = b[1]
-		const X = x2 - x1;
-		const Y = y2 - y1;
-		return Math.sqrt(X * X + Y * Y );
-	}
-	
 	function it(z, c, ite) {
-		temp = f(z,c)
-		iterations = 0
-		for (var i = 0; i<ite; i++ ) {
-			temp = f(temp,c)
-			iterations += 1
-			if (dist([0,0], temp) >= 2 || iterations==ite) {
-				return iterations
+		let temp = [0, 0];
+		let iterations = 0;
+
+		for (var i = 0; i < ite; i++) {
+			temp = f(temp, c);
+			iterations += 1;
+
+			if (distSquared([0, 0], temp) >= 4) {
+				return iterations;
 			}
 		}
+
+		return iterations;
+	}
+
+	function distSquared(a, b) {
+		const dx = b[0] - a[0];
+		const dy = b[1] - a[1];
+		return dx * dx + dy * dy;
 	}
 	
 	function map(x, input_start, input_end, output_start, output_end) {
@@ -143,19 +141,15 @@
 	
 	
 	function render(startx, endx, starty, endy, max_iterations) {
-		start_x = startx
-		end_x = endx
-		start_y = starty
-		end_y = endy
-		max_iterations = max_iterations
+		max_iterations = max_iterations<50?50:max_iterations;
 		const imageData = ctx.createImageData(size[0], size[1]);
 		const data = imageData.data;
 		for (var y = 0; y < size[1]; y++) {
 			for (var x = 0; x < size[0]; x++) {
 				new_coordinates = [map(x, 0, size[0], startx, endx), map(y, 0, size[1], starty, endy)]
-				iterations = it([0, 0], new_coordinates, max_iterations)
+				iterations0 = it([0, 0], new_coordinates, max_iterations)
 
-				color = map(iterations, 0, max_iterations, 0, 255)
+				color = map(iterations0, 0, max_iterations, 0, 255)
 
 				var indx = 4*(y*size[0]+x);
 
@@ -193,7 +187,7 @@
 				}
 				//console.log([mousex1, mousey1], [mousex2, mousey2])
 				//render(mousex1, mousex2, mousey1, mousey2)
-				location.href = `./index.html?startx=${mousex1}&endx=${mousex2}&starty=${mousey1}&endy=${mousey2}&iterations=${75 * (Math.log10(size[0]/(mousex2-mousex1)))^1.25}`;
+				location.href = `./index.html?startx=${mousex1}&endx=${mousex2}&starty=${mousey1}&endy=${mousey2}&iterations=${75 * (Math.log10(size[0]/(mousex2-mousex1)))**1.25}&startxin=${start_x1}&endxin=${end_x1}&startyin=${start_y1}=&endyin=${end_y1}`;
 			}
 			mousex1 = null
 			mousey1 = null
@@ -208,8 +202,49 @@
 		getMousePosition(canvasElem, e); 
 	}); 
 
-	render(start_x, end_x, start_y, end_y, iterations)
-	
+	//render(start_x, end_x, start_y, end_y, iterations)
+	var start_x1 = -2
+	var end_x1 = 1
+	var start_y1 = -1.5
+	var end_y1 = 1.5 
+	var Speed0 = 10;
+	function LoadNow(){
+
+		document.getElementById('startx').value = start_x1
+		document.getElementById('endx').value = end_x1
+		document.getElementById('starty').value = start_y1
+		document.getElementById('endy').value = end_y1
+		document.getElementById('iterations').value = iterations
+		render(start_x1, end_x1, start_y1, end_y1, iterations);
+
+	}
+	if (urlParams.size != 0) {
+		start_x1 = parseFloat(urlParams.get('startxin'))
+		end_x1 = parseFloat(urlParams.get('endxin'))
+		start_y1 = parseFloat(urlParams.get('startyin'))
+		end_y1 = parseFloat(urlParams.get('endyin'))
+		LoadNow();
+	}
+	function ApproachV(Initial,Want,Speed){
+		return ((Math.abs(Want/Initial-1)<0.01/Speed)?Want:Initial+(Want-Initial)/Speed)
+	}
+
+	var animationTransition = setInterval(function () {
+		
+		var centerx=ApproachV(0.5*(end_x1+start_x1),0.5*(end_x+start_x),Speed0);
+		var centery=ApproachV(0.5*(end_y1+start_y1),0.5*(end_y+start_y),Speed0);
+		var dim=ApproachV(0.5*(end_x1-start_x1),0.5*(end_x-start_x),Speed0);
+		start_x1 =centerx-dim;
+		end_x1 = centerx+dim;
+		start_y1 = centery-dim;
+		end_y1 = centery+dim;
+		iterations=75 * (Math.log10(size[0]/(end_x1-start_x1)))**1.25;
+		LoadNow();
+		if (Math.abs((end_x-start_x)/(end_x1-start_x1)-1)<0.01/Speed0){
+			clearInterval(animationTransition);
+			render(start_x, end_x, start_y, end_y,iterations)
+		}
+	}, 100);
 	
 </script> 
 
