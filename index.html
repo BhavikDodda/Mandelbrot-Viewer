@@ -219,10 +219,11 @@
 
 	}
 	if (urlParams.size != 0) {
-		start_x1 = parseFloat(urlParams.get('startxin'))
-		end_x1 = parseFloat(urlParams.get('endxin'))
-		start_y1 = parseFloat(urlParams.get('startyin'))
-		end_y1 = parseFloat(urlParams.get('endyin'))
+		keep = (inp,def)=>isNaN(inp)?def:inp;
+		start_x1 = keep(parseFloat(urlParams.get('startxin')),start_x1)
+		end_x1 = keep(parseFloat(urlParams.get('endxin')),end_x1)
+		start_y1 = keep(parseFloat(urlParams.get('startyin')),start_y1)
+		end_y1 = keep(parseFloat(urlParams.get('endyin')),end_y1)
 		LoadNow();
 	}
 	function ApproachV(Initial,Want,Speed){
